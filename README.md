@@ -72,13 +72,13 @@
 ---
 
 ## 👥 **Anggota Tim**
-| Nama                                | NPM                  | Tugas |
-|-------------------------------------|----------------------|-------|
-| 🧑‍💼 **Fauzan Arrozi (Ketua Tim)** | 10123436             | Struktur database, login/registrasi, laporan Excel, review & merge |
-| 👨‍💻 **Arizha Praja Wirakusuma**   | 10123184             | Model `Employee.java` |
-| 👨‍💻 **Faiz Alfano Duriat**        | 10123406             | Model `Attendance.java` |
-| 🎨 **Ananda Raihana**               | 10123141             | GUI (LoginFrame, RegisterFrame, MainMenuFrame) |
-| 📄 **Kevin Arya moranza**           | 10123584                  | Ekspor Excel (`ExcelExporter.java`) |
-| 📝 **Darrell Dzaky Ahnaf**          | 10123296 | Dokumentasi & unit testing |
+| Nama                                | NPM                  | Tugas                                                                |
+|-------------------------------------|----------------------|----------------------------------------------------------------------|
+| 🧑‍💼 **Fauzan Arrozi (Ketua Tim)** | 10123436             | Model Employee.java                                                  |
+| 👨‍💻 **Arizha Praja Wirakusuma**   | 10123184             | Struktur database, login/registrasi, laporan Excel, review & merge ` |
+| 👨‍💻 **Faiz Alfano Duriat**        | 10123406             | Model `Attendance.java`                                              |
+| 🎨 **Ananda Raihana**               | 10123141             | GUI (LoginFrame, RegisterFrame, MainMenuFrame)                       |
+| 📄 **Kevin Arya moranza**           | 10123584                  | Ekspor Excel (`ExcelExporter.java`)                                  |
+| 📝 **Darrell Dzaky Ahnaf**          | 10123296 | Dokumentasi & unit testing                                           |
 
 ---
