@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     // SQLite JDBC
-    implementation 'org.xerial:sqlite-jdbc:3.43.2.1'
+    implementation 'mysql:mysql-connector-java:8.0.33'
 
     // Apache POI untuk Excel
     implementation 'org.apache.poi:poi:5.2.5'

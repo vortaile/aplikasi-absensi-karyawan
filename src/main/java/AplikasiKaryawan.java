@@ -1,6 +1,8 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +13,26 @@ public class AplikasiKaryawan {
     private static ArrayList<String> kehadiran = new ArrayList<>();
     private static JFrame frame;
 
+    // Method koneksi ke database di dalam class (MySQL)
+    private static Connection getConnection() throws Exception {
+        String url = "jdbc:mysql://127.0.0.1:3306/employee_db";
+        String username = "root";
+        String password = "1234"; // Replace with your MySQL password
+
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        return DriverManager.getConnection(url, username, password);
+    }
+
     public static void main(String[] args) {
+        try {
+        Connection conn = getConnection();
+        JOptionPane.showMessageDialog(null, "Koneksi ke database berhasil!");
+        conn.close();
+        } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "Gagal koneksi: " + e.getMessage());
+        e.printStackTrace();
+        }
+
         SwingUtilities.invokeLater(() -> tampilkanMenuUtama());
     }
 
@@ -53,15 +74,30 @@ public class AplikasiKaryawan {
         int option = JOptionPane.showConfirmDialog(frame, fields, "Login", JOptionPane.OK_CANCEL_OPTION);
 
         if (option == JOptionPane.OK_OPTION) {
-            String username = fieldUsername.getText();
-            String password = new String(fieldPassword.getPassword());
+        String username = fieldUsername.getText();
+        String password = new String(fieldPassword.getPassword());
 
-            if (users.containsKey(username) && users.get(username).equals(password)) {
-                JOptionPane.showMessageDialog(frame, "Login berhasil, absensi dicatat.");
-                catatAbsensi(username);
-            } else {
-                JOptionPane.showMessageDialog(frame, "Username atau password salah.");
-            }
+        try (Connection conn = getConnection()) {
+        PreparedStatement ps = conn.prepareStatement("SELECT id FROM users WHERE username = ? AND password = ?");
+        ps.setString(1, username);
+        ps.setString(2, password);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+        int userId = rs.getInt("id");
+
+        PreparedStatement absensiStmt = conn.prepareStatement("INSERT INTO kehadiran (user_id) VALUES (?)");
+        absensiStmt.setInt(1, userId);
+        absensiStmt.executeUpdate();
+
+        JOptionPane.showMessageDialog(frame, "Login berhasil dan absensi dicatat.");
+        } else {
+        JOptionPane.showMessageDialog(frame, "Username atau password salah.");
+        }
+        } catch (Exception e) {
+        JOptionPane.showMessageDialog(frame, "Error: " + e.getMessage());
+        e.printStackTrace();
+        }
         }
     }
 
@@ -77,42 +113,85 @@ public class AplikasiKaryawan {
         int option = JOptionPane.showConfirmDialog(frame, fields, "Registrasi", JOptionPane.OK_CANCEL_OPTION);
 
         if (option == JOptionPane.OK_OPTION) {
-            String username = fieldUsername.getText();
-            String password = new String(fieldPassword.getPassword());
+        String username = fieldUsername.getText();
+        String password = new String(fieldPassword.getPassword());
 
-            if (!username.isEmpty() && !password.isEmpty()) {
-                if (!users.containsKey(username)) {
-                    users.put(username, password);
-                    JOptionPane.showMessageDialog(frame, "Registrasi berhasil.");
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Username sudah digunakan.");
-                }
-            } else {
-                JOptionPane.showMessageDialog(frame, "Input tidak boleh kosong.");
-            }
+        if (!username.isEmpty() && !password.isEmpty()) {
+        try (Connection conn = getConnection()) {
+        PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE username = ?");
+        ps.setString(1, username);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+        JOptionPane.showMessageDialog(frame, "Username sudah digunakan.");
+        } else {
+        ps = conn.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
+        ps.setString(1, username);
+        ps.setString(2, password);
+        ps.executeUpdate();
+
+        JOptionPane.showMessageDialog(frame, "Registrasi berhasil.");
         }
-    }
-
-    private static void catatAbsensi(String username) {
-        String waktu = java.time.LocalDateTime.now().toString();
-        kehadiran.add(username + " hadir pada " + waktu);
+        } catch (Exception e) {
+        JOptionPane.showMessageDialog(frame, "Error: " + e.getMessage());
+        e.printStackTrace();
+        }
+        } else {
+        JOptionPane.showMessageDialog(frame, "Input tidak boleh kosong.");
+        }
+        }
     }
 
     private static void tampilkanDaftarKehadiran() {
-        StringBuilder sb = new StringBuilder();
-        if (kehadiran.isEmpty()) {
-            sb.append("Belum ada data kehadiran.");
-        } else {
-            for (String k : kehadiran) {
-                sb.append(k).append("\n");
-            }
+        // Create a new JFrame for the table view
+        JFrame tableFrame = new JFrame("Daftar Kehadiran");
+        tableFrame.setSize(500, 300);
+        tableFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        // Create a DefaultTableModel for the JTable
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn("Username");
+        model.addColumn("Waktu");
+
+        try (Connection conn = getConnection()) {
+        String sql = "SELECT u.username, k.waktu FROM kehadiran k JOIN users u ON k.user_id = u.id ORDER BY k.waktu DESC";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+
+        // Populate the table model with data
+        while (rs.next()) {
+        model.addRow(new Object[]{
+                rs.getString("username"),
+                rs.getTimestamp("waktu").toString()
+        });
         }
 
-        JTextArea area = new JTextArea(sb.toString());
-        area.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(area);
-        scrollPane.setPreferredSize(new Dimension(350, 200));
+        // If no data, show a message
+        if (model.getRowCount() == 0) {
+        JOptionPane.showMessageDialog(tableFrame, "Belum ada data kehadiran.");
+        tableFrame.dispose();
+        return;
+        }
 
-        JOptionPane.showMessageDialog(frame, scrollPane, "Daftar Kehadiran", JOptionPane.INFORMATION_MESSAGE);
+        // Create JTable and add it to a JScrollPane
+        JTable table = new JTable(model);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // Add the scroll pane to the frame
+        tableFrame.add(scrollPane, BorderLayout.CENTER);
+
+        // Add a "Close" button at the bottom
+        JButton btnClose = new JButton("Close");
+        btnClose.addActionListener(e -> tableFrame.dispose());
+        tableFrame.add(btnClose, BorderLayout.SOUTH);
+
+        // Display the frame
+        tableFrame.setVisible(true);
+
+        } catch (Exception e) {
+        JOptionPane.showMessageDialog(frame, "Gagal mengambil data kehadiran: " + e.getMessage());
+        e.printStackTrace();
+        }
     }
 }
