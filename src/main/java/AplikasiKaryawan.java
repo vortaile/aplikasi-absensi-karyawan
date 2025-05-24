@@ -9,11 +9,11 @@ public class AplikasiKaryawan {
     private static JFrame frame;
     private static int userId = -1;
     private static String username = "";
+    private static JLabel greetingLabel = new JLabel();
 
-    // Konfigurasi database
     private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/employee_db?useSSL=false&serverTimezone=UTC";
     private static final String DB_USER = "root";
-    private static final String DB_PASS = "Nanda1213";
+    private static final String DB_PASS = "1234";
 
     private static Connection getConnection() throws Exception {
         Class.forName("com.mysql.cj.jdbc.Driver");
@@ -27,11 +27,10 @@ public class AplikasiKaryawan {
     private static void tampilkanFrameUtama() {
         frame = new JFrame("Aplikasi Manajemen Karyawan");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600);
+        frame.setSize(500, 350);
         frame.setLocationRelativeTo(null);
 
         JPanel panelContainer = new JPanel(new CardLayout());
-
         panelContainer.add(buatPanelLogin(panelContainer), "Login");
         panelContainer.add(buatPanelRegistrasi(panelContainer), "Register");
         panelContainer.add(buatPanelDashboard(panelContainer), "Dashboard");
@@ -54,32 +53,33 @@ public class AplikasiKaryawan {
 
         JButton btnLogin = new JButton("Login");
         btnLogin.addActionListener(e -> {
-            String user = fieldUsername.getText().trim();
-            String pass = new String(fieldPassword.getPassword()).trim();
+        String user = fieldUsername.getText().trim();
+        String pass = new String(fieldPassword.getPassword()).trim();
 
-            if (user.isEmpty() || pass.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Username dan password tidak boleh kosong.");
-                return;
-            }
+        if (user.isEmpty() || pass.isEmpty()) {
+        JOptionPane.showMessageDialog(frame, "Username dan password tidak boleh kosong.");
+        return;
+        }
 
-            try (Connection conn = getConnection()) {
-                String sql = "SELECT id FROM users WHERE username = ? AND password = ?";
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ps.setString(1, user);
-                ps.setString(2, pass);
-                ResultSet rs = ps.executeQuery();
+        try (Connection conn = getConnection()) {
+        String sql = "SELECT id FROM users WHERE username = ? AND password = ?";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, user);
+        ps.setString(2, pass);
+        ResultSet rs = ps.executeQuery();
 
-                if (rs.next()) {
-                    userId = rs.getInt("id");
-                    username = user;
-                    JOptionPane.showMessageDialog(frame, "Login berhasil.");
-                    gantiPanel(container, "Dashboard");
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Username atau password salah.");
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Error koneksi database: " + ex.getMessage());
-            }
+        if (rs.next()) {
+        userId = rs.getInt("id");
+        username = user;
+        greetingLabel.setText("Halo, " + username + "! Selamat datang di aplikasi absensi");
+        JOptionPane.showMessageDialog(frame, "Login berhasil.");
+        gantiPanel(container, "Dashboard");
+        } else {
+        JOptionPane.showMessageDialog(frame, "Username atau password salah.");
+        }
+        } catch (Exception ex) {
+        JOptionPane.showMessageDialog(frame, "Error koneksi database: " + ex.getMessage());
+        }
         });
 
         JButton btnRegister = new JButton("Registrasi");
@@ -89,7 +89,7 @@ public class AplikasiKaryawan {
         buttonPanel.add(btnLogin);
         buttonPanel.add(btnRegister);
 
-        panel.setBorder(BorderFactory.createEmptyBorder(50, 100, 50, 100));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         panel.add(new JLabel("Login Aplikasi", SwingConstants.CENTER), BorderLayout.NORTH);
         panel.add(form, BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
@@ -111,34 +111,34 @@ public class AplikasiKaryawan {
 
         JButton btnRegister = new JButton("Registrasi");
         btnRegister.addActionListener(e -> {
-            String user = fieldUsername.getText().trim();
-            String pass = new String(fieldPassword.getPassword()).trim();
+        String user = fieldUsername.getText().trim();
+        String pass = new String(fieldPassword.getPassword()).trim();
 
-            if (user.isEmpty() || pass.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Input tidak boleh kosong.");
-                return;
-            }
+        if (user.isEmpty() || pass.isEmpty()) {
+        JOptionPane.showMessageDialog(frame, "Input tidak boleh kosong.");
+        return;
+        }
 
-            try (Connection conn = getConnection()) {
-                String cekSql = "SELECT * FROM users WHERE username = ?";
-                PreparedStatement cekPs = conn.prepareStatement(cekSql);
-                cekPs.setString(1, user);
-                ResultSet rs = cekPs.executeQuery();
+        try (Connection conn = getConnection()) {
+        String cekSql = "SELECT * FROM users WHERE username = ?";
+        PreparedStatement cekPs = conn.prepareStatement(cekSql);
+        cekPs.setString(1, user);
+        ResultSet rs = cekPs.executeQuery();
 
-                if (rs.next()) {
-                    JOptionPane.showMessageDialog(frame, "Username sudah digunakan.");
-                } else {
-                    String insertSql = "INSERT INTO users (username, password) VALUES (?, ?)";
-                    PreparedStatement insertPs = conn.prepareStatement(insertSql);
-                    insertPs.setString(1, user);
-                    insertPs.setString(2, pass);
-                    insertPs.executeUpdate();
-                    JOptionPane.showMessageDialog(frame, "Registrasi berhasil. Silakan login.");
-                    gantiPanel(container, "Login");
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Error koneksi database: " + ex.getMessage());
-            }
+        if (rs.next()) {
+        JOptionPane.showMessageDialog(frame, "Username sudah digunakan.");
+        } else {
+        String insertSql = "INSERT INTO users (username, password) VALUES (?, ?)";
+        PreparedStatement insertPs = conn.prepareStatement(insertSql);
+        insertPs.setString(1, user);
+        insertPs.setString(2, pass);
+        insertPs.executeUpdate();
+        JOptionPane.showMessageDialog(frame, "Registrasi berhasil. Silakan login.");
+        gantiPanel(container, "Login");
+        }
+        } catch (Exception ex) {
+        JOptionPane.showMessageDialog(frame, "Error koneksi database: " + ex.getMessage());
+        }
         });
 
         JButton btnBack = new JButton("Kembali");
@@ -160,13 +160,17 @@ public class AplikasiKaryawan {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel greeting = new JLabel("", SwingConstants.CENTER);
-        greeting.setFont(new Font("Arial", Font.BOLD, 18));
-        panel.add(greeting, BorderLayout.NORTH);
+        greetingLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        greetingLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        panel.add(greetingLabel, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton btnCheckIn = new JButton("Check-In");
         JButton btnCheckOut = new JButton("Check-Out");
+
+        btnCheckIn.setPreferredSize(new Dimension(120, 40));
+        btnCheckOut.setPreferredSize(new Dimension(120, 40));
+
         buttonPanel.add(btnCheckIn);
         buttonPanel.add(btnCheckOut);
         panel.add(buttonPanel, BorderLayout.WEST);
@@ -176,33 +180,55 @@ public class AplikasiKaryawan {
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        JButton btnRefresh = new JButton("Refresh Kehadiran");
-        panel.add(btnRefresh, BorderLayout.SOUTH);
 
+        JButton btnReset = new JButton("Reset Attendance");
         JButton btnLogout = new JButton("Logout");
-        JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        logoutPanel.add(btnLogout);
-        panel.add(logoutPanel, BorderLayout.PAGE_END);
 
+        // Tambahkan aksi untuk tombol
         btnCheckIn.addActionListener(e -> {
-            catatKehadiran("check-in");
-            isiTabelKehadiran(table);
-        });
-        btnCheckOut.addActionListener(e -> {
-            catatKehadiran("check-out");
-            isiTabelKehadiran(table);
-        });
-        btnRefresh.addActionListener(e -> isiTabelKehadiran(table));
-        btnLogout.addActionListener(e -> {
-            userId = -1;
-            username = "";
-            gantiPanel(container, "Login");
+        catatKehadiran("check-in");
+        isiTabelKehadiran(table);
         });
 
-        SwingUtilities.invokeLater(() -> greeting.setText("Halo, " + username + "! Selamat datang di aplikasi absensi"));
+        btnCheckOut.addActionListener(e -> {
+        catatKehadiran("check-out");
+        isiTabelKehadiran(table);
+        });
+
+
+
+        btnReset.addActionListener(e -> {
+        int confirm = JOptionPane.showConfirmDialog(frame, "Yakin ingin menghapus semua data kehadiran?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+        try (Connection conn = getConnection()) {
+        String sql = "DELETE FROM attendance";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.executeUpdate();
+        JOptionPane.showMessageDialog(frame, "Semua data kehadiran telah dihapus.");
+        isiTabelKehadiran(table);
+        } catch (Exception ex) {
+        JOptionPane.showMessageDialog(frame, "Gagal reset database: " + ex.getMessage());
+        }
+        }
+        });
+
+        btnLogout.addActionListener(e -> {
+        userId = -1;
+        username = "";
+        gantiPanel(container, "Login");
+        });
+
+        // ... bagian lain tetap sama
+
+        JPanel bawahPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bawahPanel.add(btnReset);
+        bawahPanel.add(btnLogout);
+        panel.add(bawahPanel, BorderLayout.SOUTH);
+
+// ...
+
 
         isiTabelKehadiran(table);
-
         return panel;
     }
 
@@ -211,39 +237,39 @@ public class AplikasiKaryawan {
         model.setRowCount(0);
 
         try (Connection conn = getConnection()) {
-            String sql = "SELECT u.username, a.jenis, a.waktu " +
-                    "FROM attendance a JOIN users u ON a.user_id = u.id " +
-                    "ORDER BY a.waktu DESC";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
+        String sql = "SELECT u.username, a.jenis, a.waktu " +
+                "FROM attendance a JOIN users u ON a.user_id = u.id " +
+                "ORDER BY a.waktu DESC";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
 
-            while (rs.next()) {
-                String uname = rs.getString("username");
-                String jenis = rs.getString("jenis");
-                Timestamp waktu = rs.getTimestamp("waktu");
-                model.addRow(new Object[]{uname, jenis, waktu.toString()});
-            }
+        while (rs.next()) {
+        String uname = rs.getString("username");
+        String jenis = rs.getString("jenis");
+        Timestamp waktu = rs.getTimestamp("waktu");
+        model.addRow(new Object[]{uname, jenis, waktu.toString()});
+        }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(frame, "Gagal mengambil data kehadiran: " + ex.getMessage());
+        JOptionPane.showMessageDialog(frame, "Gagal mengambil data kehadiran: " + ex.getMessage());
         }
     }
 
     private static void catatKehadiran(String jenis) {
         if (userId == -1) {
-            JOptionPane.showMessageDialog(frame, "Anda harus login terlebih dahulu.");
-            return;
+        JOptionPane.showMessageDialog(frame, "Anda harus login terlebih dahulu.");
+        return;
         }
 
         try (Connection conn = getConnection()) {
-            String sql = "INSERT INTO attendance (user_id, jenis, waktu) VALUES (?, ?, CURRENT_TIMESTAMP)";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setInt(1, userId);
-            ps.setString(2, jenis);
-            ps.executeUpdate();
+        String sql = "INSERT INTO attendance (user_id, jenis, waktu) VALUES (?, ?, CURRENT_TIMESTAMP)";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, userId);
+        ps.setString(2, jenis);
+        ps.executeUpdate();
 
-            JOptionPane.showMessageDialog(frame, "Berhasil melakukan " + jenis + "!");
+        JOptionPane.showMessageDialog(frame, "Berhasil melakukan " + jenis + "!");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(frame, "Gagal mencatat kehadiran: " + ex.getMessage());
+        JOptionPane.showMessageDialog(frame, "Gagal mencatat kehadiran: " + ex.getMessage());
         }
     }
 
@@ -252,3 +278,4 @@ public class AplikasiKaryawan {
         cl.show(container, namaPanel);
     }
 }
+

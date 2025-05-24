@@ -1,19 +1,16 @@
--- Buat database jika belum ada
-CREATE DATABASE IF NOT EXISTS employee_db;
+CREATE DATABASE employee_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE employee_db;
 
--- Tabel Users
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL
+CREATE TABLE users (
+id INT AUTO_INCREMENT PRIMARY KEY,
+username VARCHAR(50) UNIQUE NOT NULL,
+password VARCHAR(255) NOT NULL
 );
 
--- Tabel Kehadiran dengan jenis check-in / check-out
-CREATE TABLE IF NOT EXISTS kehadiran (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    jenis ENUM('check-in', 'check-out') NOT NULL,
-    waktu DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+CREATE TABLE attendance (
+id INT AUTO_INCREMENT PRIMARY KEY,
+user_id INT NOT NULL,
+jenis ENUM('check-in', 'check-out') NOT NULL,
+waktu TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (user_id) REFERENCES users(id)
 );
