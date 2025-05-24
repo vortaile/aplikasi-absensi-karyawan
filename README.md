@@ -1,84 +1,92 @@
 # 📋 Aplikasi Absensi Karyawan
 
-**Aplikasi Absensi Karyawan** adalah sistem berbasis desktop yang dirancang untuk membantu perusahaan atau organisasi dalam mencatat kehadiran karyawan secara efisien. Aplikasi ini memungkinkan karyawan untuk login, melakukan check-in/check-out, dan menghasilkan laporan bulanan dalam format Excel. Proyek ini dikembangkan sebagai bagian dari tugas akademik untuk membantu memahami pengembangan aplikasi menggunakan Java.
+**Aplikasi Absensi Karyawan** adalah sistem desktop yang dibuat untuk mencatat kehadiran karyawan secara efisien. Aplikasi ini memungkinkan pengguna untuk login atau registrasi, melakukan absensi (check-in dan check-out), serta melihat data kehadiran mereka. Data disimpan secara lokal menggunakan SQLite, dan laporan bulanan dapat diekspor ke Excel.
 
 ---
 
-## ✨ **Fitur Utama**
-- 🔐 **Login dan Registrasi**  
-  Karyawan dapat login menggunakan ID dan password. Jika belum memiliki akun, mereka dapat mendaftar langsung melalui aplikasi.
-- 🕘 **Absensi Harian**  
-  Karyawan dapat mencatat waktu masuk (check-in) dan keluar (check-out) setiap hari.
-- 📊 **Laporan Bulanan**  
-  Aplikasi dapat menghasilkan laporan absensi bulanan dalam format Excel.
-- 🗄️ **Database Lokal**  
-  Data disimpan secara lokal menggunakan SQLite untuk kemudahan penggunaan.
+## ✨ Fitur Utama
+
+- 🔐 **Login dan Registrasi**
+    - Pengguna dapat login atau membuat akun baru.
+- 🙋‍♂️ **Halo, {Nama}**
+    - Setelah login, pengguna disambut dengan nama mereka.
+- ⏱️ **Absensi Harian**
+    - Check-in dan check-out ditampilkan secara berdampingan.
+- 📅 **Riwayat Kehadiran**
+    - Daftar kehadiran pengguna ditampilkan di bawah panel absensi.
+- 🧑‍💼 **Dashboard**
+    - Tampilan dashboard berisi avatar (placeholder), informasi pengguna, dan tombol-tombol interaktif.
+- 📊 **Laporan Bulanan**
+    - Laporan dapat diekspor ke format Excel menggunakan Apache POI.
 
 ---
 
-## 🛠️ **Teknologi yang Digunakan**
+## 🛠️ Teknologi yang Digunakan
+
 - 💻 **Bahasa Pemrograman**: Java (JDK 23 - Oracle OpenJDK 23.0.1)
-- 🖼️ **Antarmuka Pengguna (UI)**: AWT dan Swing
+- 🖼️ **GUI**: AWT & Swing
 - 🧱 **Build Tool**: Gradle
-- 🗃️ **Database**: SQLite dengan JDBC
+- 🗃️ **Database**: SQLite + JDBC
 - 📦 **Library Eksternal**:
-    - 📁 Apache POI: Untuk laporan Excel (v5.2.5)
-    - 🛢️ SQLite JDBC (v3.46.0)
-    - ✅ JUnit (v5.10.2)
-- 🧠 **IDE**: IntelliJ IDEA (v2024.3.5)
-- 🌐 **Version Control**: Git dan GitHub
+    - Apache POI (v5.2.5) untuk ekspor Excel
+    - SQLite JDBC (v3.46.0)
+    - JUnit 5 (v5.10.2)
+- 🧠 **IDE**: IntelliJ IDEA
+- 🌐 **Version Control**: Git & GitHub
 
 ---
 
-## 🔄 **Alur Kerja Aplikasi (Flow)**
-1. 🏁 **Memulai Aplikasi**  
-   Pengguna membuka aplikasi yang langsung menampilkan halaman login.
+## 🔄 Alur Aplikasi
 
-2. 🔐 **Login atau Registrasi**
+1. **Tampilan Awal**
+    - Hanya menampilkan panel Login dan Register.
+
+2. **Login atau Registrasi**
     - Login: Masukkan ID dan password.
-    - Registrasi: Isi ID, password, nama, jabatan, dan email → simpan ke database `Employee`.
+    - Registrasi: Isi ID, password, nama, jabatan, dan email.
 
-3. 🧭 **Menu Utama**
-    - 🟢 **Check-In/Check-Out**: Catat waktu masuk dan keluar → simpan ke `Attendance`.
-    - 📊 **Generate Laporan Bulanan**: Pilih bulan → hitung kehadiran, absen, terlambat → ekspor Excel.
-    - 🔄 **Logout**: Kembali ke login.
+3. **Dashboard**
+    - Menampilkan teks: `Halo, {Nama} selamat datang di aplikasi absensi`
+    - Avatar placeholder
+    - Tombol Check-In dan Check-Out (berdampingan)
+    - Daftar riwayat kehadiran pengguna
+    - Tombol untuk melihat laporan atau logout
 
-4. ✅ **Selesai**
-    - Tutup aplikasi setelah selesai digunakan.
-
----
-
-## 💡 **Penggunaan**
-### 1️⃣ Jalankan Aplikasi
-- Pastikan aplikasi sudah dibuild dan dijalankan.
-
-### 2️⃣ Login atau Registrasi
-- 🔑 Login: Masukkan ID dan password, klik "Login".
-    - Contoh: `EMP001`, `password123`
-- 📝 Registrasi: Klik "Register" lalu isi data → klik "Submit".
-
-### 3️⃣ Menu Utama
-- ⏱️ **Check-In/Check-Out**
-- 📈 **Generate Report**
-- 🚪 **Logout**
-
-### 4️⃣ Selesai
-- Tutup jendela aplikasi.
-
-📝 **Catatan**:
-- File database `absensi.db` harus ada.
-- Jika lupa password, hubungi admin/kepala tim.
+4. **Laporan Bulanan**
+    - Pilih bulan → Ekspor data ke Excel
 
 ---
 
-## 👥 **Anggota Tim**
-| Nama                                | NPM                  | Tugas |
-|-------------------------------------|----------------------|-------|
-| 🧑‍💼 **Fauzan Arrozi (Ketua Tim)** | 10123436             | Struktur database, login/registrasi, laporan Excel, review & merge |
-| 👨‍💻 **Arizha Praja Wirakusuma**   | 10123184             | Model `Employee.java` |
-| 👨‍💻 **Faiz Alfano Duriat**        | 10123406             | Model `Attendance.java` |
-| 🎨 **Ananda Raihana**               | 10123141             | GUI (LoginFrame, RegisterFrame, MainMenuFrame) |
-| 📄 **Kevin Arya moranza**           | 10123584                  | Ekspor Excel (`ExcelExporter.java`) |
-| 📝 **Darrell Dzaky Ahnaf**          | 10123296 | Dokumentasi & unit testing |
+## 💡 Cara Menggunakan
+
+1. **Jalankan Aplikasi**
+    - Jalankan dari IDE atau hasil build Gradle.
+
+2. **Login atau Registrasi**
+    - Masuk atau buat akun baru.
+
+3. **Dashboard**
+    - Lakukan check-in/check-out
+    - Lihat riwayat kehadiran
+    - Ekspor laporan jika dibutuhkan
+
+4. **Tutup Aplikasi**
+    - Logout dan keluar dari aplikasi.
+
+📝 **Catatan**: File database `absensi.db` harus berada di direktori proyek.
 
 ---
+
+## 👥 Anggota Tim
+
+| Nama                          | NPM        |
+|-------------------------------|------------|
+| Fauzan Arrozi                | 10123436   |
+| Arizha Praja Wirakusuma      | 10123184   |
+| Faiz Alfano Duriat           | 10123406   |
+| Ananda Raihana               | 10123141   |
+| Kevin Arya Moranza           | 10123584   |
+| Darrell Dzaky Ahnaf          | 10123296   |
+
+---
+

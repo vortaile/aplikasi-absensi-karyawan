@@ -3,213 +3,277 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
 
 public class AplikasiKaryawan {
 
     private static JFrame frame;
-    private static int userId = -1; // Menyimpan user ID setelah login
+    private static int userId = -1;
+    private static String username = "";
+
+    // Konfigurasi database, sesuaikan dengan milik Anda
+    private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/employee_db?useSSL=false&serverTimezone=UTC";
+    private static final String DB_USER = "root";
+    private static final String DB_PASS = "Nanda1213";
 
     private static Connection getConnection() throws Exception {
-        String url = "jdbc:mysql://127.0.0.1:3306/employee_db";
-        String username = "root";
-        String password = "Nanda1213";
         Class.forName("com.mysql.cj.jdbc.Driver");
-        return DriverManager.getConnection(url, username, password);
+        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(AplikasiKaryawan::tampilkanMenuUtama);
+        SwingUtilities.invokeLater(AplikasiKaryawan::tampilkanFrameUtama);
     }
 
-    private static void tampilkanMenuUtama() {
+    private static void tampilkanFrameUtama() {
         frame = new JFrame("Aplikasi Manajemen Karyawan");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 300);
+        frame.setSize(800, 600);
+        frame.setLocationRelativeTo(null); // Center window
+        frame.setLayout(new CardLayout());
 
-        JPanel panel = new JPanel(new GridLayout(3, 1, 10, 10));
-        JButton btnLogin = new JButton("Login");
-        JButton btnRegistrasi = new JButton("Registrasi");
-        JButton btnLihatKehadiran = new JButton("Lihat Kehadiran");
+        JPanel panelContainer = new JPanel(new CardLayout());
 
-        btnLogin.addActionListener(e -> tampilkanFormLogin());
-        btnRegistrasi.addActionListener(e -> tampilkanFormRegistrasi());
-        btnLihatKehadiran.addActionListener(e -> tampilkanDaftarKehadiran());
+        JPanel panelLogin = buatPanelLogin(panelContainer);
+        JPanel panelRegistrasi = buatPanelRegistrasi(panelContainer);
+        JPanel panelDashboard = buatPanelDashboard(panelContainer);
 
-        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        panel.add(btnLogin);
-        panel.add(btnRegistrasi);
-        panel.add(btnLihatKehadiran);
+        panelContainer.add(panelLogin, "Login");
+        panelContainer.add(panelRegistrasi, "Register");
+        panelContainer.add(panelDashboard, "Dashboard");
 
-        frame.setContentPane(panel);
+        frame.setContentPane(panelContainer);
         frame.setVisible(true);
     }
 
-    private static void tampilkanFormLogin() {
+    private static JPanel buatPanelLogin(JPanel container) {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel form = new JPanel(new GridLayout(3, 2, 10, 10));
+
         JTextField fieldUsername = new JTextField();
         JPasswordField fieldPassword = new JPasswordField();
 
-        Object[] fields = {
-                "Username:", fieldUsername,
-                "Password:", fieldPassword
-        };
+        form.add(new JLabel("Username:"));
+        form.add(fieldUsername);
+        form.add(new JLabel("Password:"));
+        form.add(fieldPassword);
 
-        int option = JOptionPane.showConfirmDialog(frame, fields, "Login", JOptionPane.OK_CANCEL_OPTION);
+        JButton btnLogin = new JButton("Login");
+        btnLogin.addActionListener(e -> {
+            String user = fieldUsername.getText().trim();
+            String pass = new String(fieldPassword.getPassword()).trim();
 
-        if (option == JOptionPane.OK_OPTION) {
-            String username = fieldUsername.getText();
-            String password = new String(fieldPassword.getPassword());
+            if (user.isEmpty() || pass.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Username dan password tidak boleh kosong.");
+                return;
+            }
 
             try (Connection conn = getConnection()) {
-                PreparedStatement ps = conn.prepareStatement("SELECT id FROM users WHERE username = ? AND password = ?");
-                ps.setString(1, username);
-                ps.setString(2, password);
+                String sql = "SELECT id FROM users WHERE username = ? AND password = ?";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setString(1, user);
+                ps.setString(2, pass);
                 ResultSet rs = ps.executeQuery();
 
                 if (rs.next()) {
                     userId = rs.getInt("id");
+                    username = user;
                     JOptionPane.showMessageDialog(frame, "Login berhasil.");
-                    tampilkanMenuSetelahLogin(username);
+                    gantiPanel(container, "Dashboard");
                 } else {
                     JOptionPane.showMessageDialog(frame, "Username atau password salah.");
                 }
-
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(frame, "Error: " + e.getMessage());
-                e.printStackTrace();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Error koneksi database: " + ex.getMessage());
+                ex.printStackTrace();
             }
-        }
-    }
-
-    private static void tampilkanMenuSetelahLogin(String username) {
-        JFrame menuLoginFrame = new JFrame("Selamat Datang, " + username);
-        menuLoginFrame.setSize(400, 200);
-        menuLoginFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        JPanel panel = new JPanel(new GridLayout(3, 1, 10, 10));
-
-        JButton btnCheckIn = new JButton("Check-In");
-        JButton btnCheckOut = new JButton("Check-Out");
-        JButton btnLogout = new JButton("Logout");
-
-        btnCheckIn.addActionListener(e -> catatKehadiran("check-in"));
-        btnCheckOut.addActionListener(e -> catatKehadiran("check-out"));
-        btnLogout.addActionListener(e -> {
-            userId = -1;
-            menuLoginFrame.dispose();
-            JOptionPane.showMessageDialog(frame, "Logout berhasil.");
         });
 
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        panel.add(btnCheckIn);
-        panel.add(btnCheckOut);
-        panel.add(btnLogout);
+        JButton btnRegister = new JButton("Registrasi");
+        btnRegister.addActionListener(e -> gantiPanel(container, "Register"));
 
-        menuLoginFrame.setContentPane(panel);
-        menuLoginFrame.setVisible(true);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(btnLogin);
+        buttonPanel.add(btnRegister);
+
+        panel.setBorder(BorderFactory.createEmptyBorder(50, 100, 50, 100));
+        panel.add(new JLabel("Login Aplikasi", SwingConstants.CENTER), BorderLayout.NORTH);
+        panel.add(form, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private static JPanel buatPanelRegistrasi(JPanel container) {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel form = new JPanel(new GridLayout(3, 2, 10, 10));
+
+        JTextField fieldUsername = new JTextField();
+        JPasswordField fieldPassword = new JPasswordField();
+
+        form.add(new JLabel("Username baru:"));
+        form.add(fieldUsername);
+        form.add(new JLabel("Password:"));
+        form.add(fieldPassword);
+
+        JButton btnRegister = new JButton("Registrasi");
+        btnRegister.addActionListener(e -> {
+            String user = fieldUsername.getText().trim();
+            String pass = new String(fieldPassword.getPassword()).trim();
+
+            if (user.isEmpty() || pass.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Input tidak boleh kosong.");
+                return;
+            }
+
+            try (Connection conn = getConnection()) {
+                // Cek username sudah ada atau belum
+                String cekSql = "SELECT * FROM users WHERE username = ?";
+                PreparedStatement cekPs = conn.prepareStatement(cekSql);
+                cekPs.setString(1, user);
+                ResultSet rs = cekPs.executeQuery();
+
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(frame, "Username sudah digunakan.");
+                } else {
+                    String insertSql = "INSERT INTO users (username, password) VALUES (?, ?)";
+                    PreparedStatement insertPs = conn.prepareStatement(insertSql);
+                    insertPs.setString(1, user);
+                    insertPs.setString(2, pass);
+                    insertPs.executeUpdate();
+                    JOptionPane.showMessageDialog(frame, "Registrasi berhasil. Silakan login.");
+                    gantiPanel(container, "Login");
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Error koneksi database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+
+        JButton btnBack = new JButton("Kembali");
+        btnBack.addActionListener(e -> gantiPanel(container, "Login"));
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(btnRegister);
+        buttonPanel.add(btnBack);
+
+        panel.setBorder(BorderFactory.createEmptyBorder(50, 100, 50, 100));
+        panel.add(new JLabel("Registrasi User Baru", SwingConstants.CENTER), BorderLayout.NORTH);
+        panel.add(form, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private static JPanel buatPanelDashboard(JPanel container) {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Label sapaan
+        JLabel greeting = new JLabel("", SwingConstants.CENTER);
+        greeting.setFont(new Font("Arial", Font.BOLD, 18));
+        panel.add(greeting, BorderLayout.NORTH);
+
+        // Panel avatar dan tombol checkin checkout
+        JPanel panelKiri = new JPanel(new BorderLayout(10, 10));
+        JLabel avatarLabel = new JLabel("[Avatar]", SwingConstants.CENTER);
+        avatarLabel.setPreferredSize(new Dimension(120, 120));
+        avatarLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        panelKiri.add(avatarLabel, BorderLayout.NORTH);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton btnCheckIn = new JButton("Check-In");
+        JButton btnCheckOut = new JButton("Check-Out");
+        buttonPanel.add(btnCheckIn);
+        buttonPanel.add(btnCheckOut);
+        panelKiri.add(buttonPanel, BorderLayout.SOUTH);
+
+        panel.add(panelKiri, BorderLayout.WEST);
+
+        // Tabel kehadiran
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"Jenis", "Waktu"}, 0);
+        JTable table = new JTable(model);
+        JScrollPane scrollPane = new JScrollPane(table);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        JButton btnRefresh = new JButton("Refresh Kehadiran");
+        panel.add(btnRefresh, BorderLayout.SOUTH);
+
+        // Tombol Logout
+        JButton btnLogout = new JButton("Logout");
+        JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        logoutPanel.add(btnLogout);
+        panel.add(logoutPanel, BorderLayout.PAGE_END);
+
+        // Event handlers
+        btnCheckIn.addActionListener(e -> {
+            catatKehadiran("check-in");
+            isiTabelKehadiran(table);
+        });
+        btnCheckOut.addActionListener(e -> {
+            catatKehadiran("check-out");
+            isiTabelKehadiran(table);
+        });
+        btnRefresh.addActionListener(e -> isiTabelKehadiran(table));
+
+        btnLogout.addActionListener(e -> {
+            userId = -1;
+            username = "";
+            gantiPanel(container, "Login");
+        });
+
+        // Set sapaan tiap kali dashboard muncul
+        SwingUtilities.invokeLater(() -> greeting.setText("Halo, " + username + "! Selamat datang di aplikasi absensi"));
+
+        isiTabelKehadiran(table);
+
+        return panel;
+    }
+
+    private static void isiTabelKehadiran(JTable table) {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        if (userId == -1) return;
+
+        try (Connection conn = getConnection()) {
+            String sql = "SELECT jenis, waktu FROM attendance WHERE user_id = ? ORDER BY waktu DESC";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String jenis = rs.getString("jenis");
+                Timestamp waktu = rs.getTimestamp("waktu");
+                model.addRow(new Object[]{jenis, waktu.toString()});
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(frame, "Gagal mengambil data kehadiran: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     private static void catatKehadiran(String jenis) {
         if (userId == -1) {
-            JOptionPane.showMessageDialog(frame, "Anda belum login.");
+            JOptionPane.showMessageDialog(frame, "Anda harus login terlebih dahulu.");
             return;
         }
 
         try (Connection conn = getConnection()) {
-            PreparedStatement ps = conn.prepareStatement("INSERT INTO kehadiran (user_id, jenis) VALUES (?, ?)");
+            String sql = "INSERT INTO attendance (user_id, jenis, waktu) VALUES (?, ?, CURRENT_TIMESTAMP)";
+            PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, userId);
             ps.setString(2, jenis);
             ps.executeUpdate();
-            JOptionPane.showMessageDialog(frame, jenis + " berhasil dicatat.");
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Gagal mencatat kehadiran: " + e.getMessage());
-            e.printStackTrace();
+
+            JOptionPane.showMessageDialog(frame, "Berhasil melakukan " + jenis + "!");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(frame, "Gagal mencatat kehadiran: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
-    private static void tampilkanFormRegistrasi() {
-        JTextField fieldUsername = new JTextField();
-        JPasswordField fieldPassword = new JPasswordField();
-
-        Object[] fields = {
-                "Username baru:", fieldUsername,
-                "Password:", fieldPassword
-        };
-
-        int option = JOptionPane.showConfirmDialog(frame, fields, "Registrasi", JOptionPane.OK_CANCEL_OPTION);
-
-        if (option == JOptionPane.OK_OPTION) {
-            String username = fieldUsername.getText();
-            String password = new String(fieldPassword.getPassword());
-
-            if (!username.isEmpty() && !password.isEmpty()) {
-                try (Connection conn = getConnection()) {
-                    PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE username = ?");
-                    ps.setString(1, username);
-                    ResultSet rs = ps.executeQuery();
-
-                    if (rs.next()) {
-                        JOptionPane.showMessageDialog(frame, "Username sudah digunakan.");
-                    } else {
-                        ps = conn.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
-                        ps.setString(1, username);
-                        ps.setString(2, password);
-                        ps.executeUpdate();
-                        JOptionPane.showMessageDialog(frame, "Registrasi berhasil.");
-                    }
-
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(frame, "Error: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            } else {
-                JOptionPane.showMessageDialog(frame, "Input tidak boleh kosong.");
-            }
-        }
-    }
-
-    private static void tampilkanDaftarKehadiran() {
-        JFrame tableFrame = new JFrame("Daftar Kehadiran");
-        tableFrame.setSize(600, 300);
-        tableFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("Username");
-        model.addColumn("Jenis");
-        model.addColumn("Waktu");
-
-        try (Connection conn = getConnection()) {
-            String sql = "SELECT u.username, k.jenis, k.waktu FROM kehadiran k JOIN users u ON k.user_id = u.id ORDER BY k.waktu DESC";
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-
-            while (rs.next()) {
-                model.addRow(new Object[]{
-                        rs.getString("username"),
-                        rs.getString("jenis"),
-                        rs.getTimestamp("waktu").toString()
-                });
-            }
-
-            if (model.getRowCount() == 0) {
-                JOptionPane.showMessageDialog(tableFrame, "Belum ada data kehadiran.");
-                tableFrame.dispose();
-                return;
-            }
-
-            JTable table = new JTable(model);
-            JScrollPane scrollPane = new JScrollPane(table);
-            tableFrame.add(scrollPane, BorderLayout.CENTER);
-
-            JButton btnClose = new JButton("Close");
-            btnClose.addActionListener(e -> tableFrame.dispose());
-            tableFrame.add(btnClose, BorderLayout.SOUTH);
-
-            tableFrame.setVisible(true);
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Gagal mengambil data kehadiran: " + e.getMessage());
-            e.printStackTrace();
-        }
+    private static void gantiPanel(JPanel container, String namaPanel) {
+        CardLayout cl = (CardLayout) container.getLayout();
+        cl.show(container, namaPanel);
     }
 }
