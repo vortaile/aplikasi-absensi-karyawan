@@ -10,7 +10,7 @@ public class AplikasiKaryawan {
     private static int userId = -1;
     private static String username = "";
 
-    // Konfigurasi database, sesuaikan dengan milik Anda
+    // Konfigurasi database
     private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/employee_db?useSSL=false&serverTimezone=UTC";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "Nanda1213";
@@ -28,18 +28,13 @@ public class AplikasiKaryawan {
         frame = new JFrame("Aplikasi Manajemen Karyawan");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
-        frame.setLocationRelativeTo(null); // Center window
-        frame.setLayout(new CardLayout());
+        frame.setLocationRelativeTo(null);
 
         JPanel panelContainer = new JPanel(new CardLayout());
 
-        JPanel panelLogin = buatPanelLogin(panelContainer);
-        JPanel panelRegistrasi = buatPanelRegistrasi(panelContainer);
-        JPanel panelDashboard = buatPanelDashboard(panelContainer);
-
-        panelContainer.add(panelLogin, "Login");
-        panelContainer.add(panelRegistrasi, "Register");
-        panelContainer.add(panelDashboard, "Dashboard");
+        panelContainer.add(buatPanelLogin(panelContainer), "Login");
+        panelContainer.add(buatPanelRegistrasi(panelContainer), "Register");
+        panelContainer.add(buatPanelDashboard(panelContainer), "Dashboard");
 
         frame.setContentPane(panelContainer);
         frame.setVisible(true);
@@ -84,7 +79,6 @@ public class AplikasiKaryawan {
                 }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error koneksi database: " + ex.getMessage());
-                ex.printStackTrace();
             }
         });
 
@@ -126,7 +120,6 @@ public class AplikasiKaryawan {
             }
 
             try (Connection conn = getConnection()) {
-                // Cek username sudah ada atau belum
                 String cekSql = "SELECT * FROM users WHERE username = ?";
                 PreparedStatement cekPs = conn.prepareStatement(cekSql);
                 cekPs.setString(1, user);
@@ -145,7 +138,6 @@ public class AplikasiKaryawan {
                 }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error koneksi database: " + ex.getMessage());
-                ex.printStackTrace();
             }
         });
 
@@ -168,29 +160,18 @@ public class AplikasiKaryawan {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Label sapaan
         JLabel greeting = new JLabel("", SwingConstants.CENTER);
         greeting.setFont(new Font("Arial", Font.BOLD, 18));
         panel.add(greeting, BorderLayout.NORTH);
-
-        // Panel avatar dan tombol checkin checkout
-        JPanel panelKiri = new JPanel(new BorderLayout(10, 10));
-        JLabel avatarLabel = new JLabel("[Avatar]", SwingConstants.CENTER);
-        avatarLabel.setPreferredSize(new Dimension(120, 120));
-        avatarLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        panelKiri.add(avatarLabel, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton btnCheckIn = new JButton("Check-In");
         JButton btnCheckOut = new JButton("Check-Out");
         buttonPanel.add(btnCheckIn);
         buttonPanel.add(btnCheckOut);
-        panelKiri.add(buttonPanel, BorderLayout.SOUTH);
+        panel.add(buttonPanel, BorderLayout.WEST);
 
-        panel.add(panelKiri, BorderLayout.WEST);
-
-        // Tabel kehadiran
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"Jenis", "Waktu"}, 0);
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"Username", "Jenis", "Waktu"}, 0);
         JTable table = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -198,13 +179,11 @@ public class AplikasiKaryawan {
         JButton btnRefresh = new JButton("Refresh Kehadiran");
         panel.add(btnRefresh, BorderLayout.SOUTH);
 
-        // Tombol Logout
         JButton btnLogout = new JButton("Logout");
         JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         logoutPanel.add(btnLogout);
         panel.add(logoutPanel, BorderLayout.PAGE_END);
 
-        // Event handlers
         btnCheckIn.addActionListener(e -> {
             catatKehadiran("check-in");
             isiTabelKehadiran(table);
@@ -214,14 +193,12 @@ public class AplikasiKaryawan {
             isiTabelKehadiran(table);
         });
         btnRefresh.addActionListener(e -> isiTabelKehadiran(table));
-
         btnLogout.addActionListener(e -> {
             userId = -1;
             username = "";
             gantiPanel(container, "Login");
         });
 
-        // Set sapaan tiap kali dashboard muncul
         SwingUtilities.invokeLater(() -> greeting.setText("Halo, " + username + "! Selamat datang di aplikasi absensi"));
 
         isiTabelKehadiran(table);
@@ -233,22 +210,21 @@ public class AplikasiKaryawan {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        if (userId == -1) return;
-
         try (Connection conn = getConnection()) {
-            String sql = "SELECT jenis, waktu FROM attendance WHERE user_id = ? ORDER BY waktu DESC";
+            String sql = "SELECT u.username, a.jenis, a.waktu " +
+                    "FROM attendance a JOIN users u ON a.user_id = u.id " +
+                    "ORDER BY a.waktu DESC";
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
+                String uname = rs.getString("username");
                 String jenis = rs.getString("jenis");
                 Timestamp waktu = rs.getTimestamp("waktu");
-                model.addRow(new Object[]{jenis, waktu.toString()});
+                model.addRow(new Object[]{uname, jenis, waktu.toString()});
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, "Gagal mengambil data kehadiran: " + ex.getMessage());
-            ex.printStackTrace();
         }
     }
 
@@ -268,7 +244,6 @@ public class AplikasiKaryawan {
             JOptionPane.showMessageDialog(frame, "Berhasil melakukan " + jenis + "!");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(frame, "Gagal mencatat kehadiran: " + ex.getMessage());
-            ex.printStackTrace();
         }
     }
 
