@@ -33,8 +33,8 @@ Proyek ini adalah Aplikasi Absensi Karyawan yang dikembangkan menggunakan Java 2
 | 💻 Bahasa        | Java (JDK 23 - Oracle OpenJDK 23.0.1)         |
 | 🖼️ GUI           | AWT & Swing                                   |
 | 🧱 Build Tool    | Gradle                                        |
-| 🗃️ Database      | SQLite + JDBC                                 |
-| 📦 Library       | Apache POI v5.2.5, SQLite JDBC v3.46.0        |
+| 🗃️ Database      | MySQL + JDBC                                 |
+| 📦 Library       | Apache POI v5.2.5, MySQL JDBC v3.46.0        |
 | 🧪 Testing       | JUnit 5 (v5.10.2)                              |
 | 💡 IDE           | IntelliJ IDEA                                 |
 | 🌐 Version Ctrl  | Git & GitHub                                  |
