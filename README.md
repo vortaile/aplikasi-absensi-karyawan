@@ -1,6 +1,6 @@
 # 📋 Aplikasi Absensi Karyawan
 
-**Aplikasi Absensi Karyawan** adalah sistem desktop berbasis Java yang digunakan untuk mencatat kehadiran karyawan secara efisien. Aplikasi ini menyediakan fitur login, registrasi, check-in, check-out, serta ekspor laporan bulanan dalam format Excel.
+Proyek ini adalah Aplikasi Absensi Karyawan yang dikembangkan menggunakan Java 2 Standard Edition (J2SE) dengan menerapkan konsep Pemrograman Berorientasi Objek (OOP) dan memanfaatkan Java Swing untuk antarmuka grafis. Aplikasi ini dirancang untuk membantu pengelolaan kehadiran karyawan, dengan fokus pada proses autentikasi pengguna, pencatatan kehadiran (check-in/check-out), dan pengelolaan data kehadiran. Aplikasi ini sangat berguna bagi perusahaan atau organisasi yang membutuhkan sistem absensi sederhana namun efisien untuk memantau kehadiran karyawan secara digital. Aplikasi ini terintegrasi dengan MySQL untuk menyimpan dan mengelola data secara efisien. 
 
 ---
 
